@@ -112,12 +112,16 @@ int GgApp::main(int argc, const char* const* argv)
   //   【宿題】これを Projection Shadow 用の変換行列に置き換える
   // 　　　　　※この変換行列はシャドウマッピングでは使いません
   //
-  const GLfloat m[]
-  {
-      1.0f,   0.0f,   0.0f,   0.0f,
-      0.0f,   0.0f,   0.0f,   0.0f,
-      0.0f,   0.0f,   1.0f,   0.0f,
-      0.0f,   0.0f,   0.0f,   1.0f
+  const GLfloat Lx = lp[0];
+  const GLfloat Ly = lp[1];
+  const GLfloat Lz = lp[2];
+  const GLfloat Lw = lp[3];
+
+  const GLfloat m[] = { // OpenGLで転置してるよ
+    Ly,   0,    0,    0,
+   -Lx,   0,  -Lz, -Lw,   // 投影おくゆき
+     0,   0,   Ly,    0,
+     0,   0,    0,   Ly
   };
   const GgMatrix ms{ m };
 
@@ -171,13 +175,11 @@ int GgApp::main(int argc, const char* const* argv)
     glDisable(GL_DEPTH_TEST);
     for (int i = 0; i < objects; ++i)
     {
-      // アニメーションの変換行列
       const auto ma{ animate(t, i) };
 
-      // 影の描画 (楕円は XY 平面上にあるので X 軸中心に -π/2 回転)
-      //   【宿題】楕円の代わりに影を落とす図形そのものを描く (-π/2 回転は不要)
-      shader.loadModelviewMatrix(mv * ms * ma * ggRotateX(-1.570796f));
-      ellipse->draw();
+      // オブジェクト自体を投影
+      shader.loadModelviewMatrix(mv * ms * ma);
+      object->draw();
     }
     glEnable(GL_DEPTH_TEST);
 
